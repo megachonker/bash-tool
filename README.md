@@ -1,12 +1,12 @@
 ##  vm
 #### usage:
-- vm swap [nvidia|vfio-pci]
-- vm [start|stop]
+- vm swap [*nvidia*|*vfio-pci*]
+- vm [*start*|*stop*]
 #### description:
 *permet d'automatiser le swap de driver pour faire du pathrought, démarage de la vm*
 ##  looking
 #### usage:
-- looking [fps]
+- looking [*fps*]
 #### description:
 - lance looking glass avec l'option: **input:rawMouse yes input:mouseSmoothing no -F**
 ##  screenoff
