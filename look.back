@@ -1,0 +1,9 @@
+#!/bin/bash
+if [ -z "$1" ];then
+looking-glass-client input:rawMouse yes input:mouseSmoothing no -F
+else
+	if [[ "^fps" =~ "$1" ]]; then
+looking-glass-client input:rawMouse yes input:mouseSmoothing no -F win:showFPS
+	else
+looking-glass-client input:rawMouse yes input:mouseSmoothing no win:showFPS
+fi;fi

@@ -1,0 +1,2 @@
+#!/bin/bash
+for img in *; do magick convert $img $(echo $img|grep "^[^\.]*" -o).png;done

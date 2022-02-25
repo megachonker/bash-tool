@@ -1,0 +1,60 @@
+#!/bin/bash
+
+mygpuContID="10de:2482"
+mygpuPATH="0000:09:00.0"
+mydriver="nvidia"
+vmname="win10"
+
+txtblk='\e[0;30m' 	# Black - Regular
+txtred='\e[0;31m' 	# Red
+txtgrn='\e[0;32m' 	# Green
+txtyel='\033[1;93m' 	# yello
+txtrst='\e[0m' 		# Text Reset
+txtblu='\e[0;34m'		# Blue
+
+swapdriver(){
+	mygpuPATH=$1
+	driverToBind=$2
+
+	lsof /dev/nvidia1 | xargs -r kill -SIGKILL
+
+	[[ "$(lspci -s $mygpuPATH -k 2> /dev/null)" =~ "Kernel driver in use: $driverToBind" ]] && echo -e $txtblu"driver déja monter"$txtrst && return 0
+
+
+	#chemain du driver est unbine donc connaitre le old drivezr
+	if [[ -e "/sys/bus/pci/devices/${mygpuPATH}/driver" ]]
+	then
+		#unbind du driver
+		sudo echo ${mygpuPATH} > /sys/bus/pci/devices/${mygpuPATH}/driver/unbind
+	else
+		echo -e "${txtyel}driver deja retirer !"$txtrst
+	fi
+	#bind new driver
+	sudo echo ${mygpuPATH} > /sys/bus/pci/drivers/${driverToBind}/bind || { echo -e $txtred driver indisponible/inexistant ; exit 1;}
+
+	#check unbind
+	[[ "$(lspci -s $mygpuPATH -k 2> /dev/null)" =~ "Kernel driver in use: $driverToBind" ]] && echo -e $txtgrn"driver monter"$txtrst || { echo -e $txtred"driver non monter" ; exit 2 ;}
+}
+
+startvm(){
+	sudo virsh start $1 && { echo -e $txtgrn"vm on"$txtrst;looking;}|| { echo -e $txtred" soucis"$txtrst;exit 3;}
+}
+
+stopvm(){
+	sudo virsh shutdown $1 && echo -e $txtgrn"vm off"$txtrst || { echo -e $txtred" soucis"$txtrst;exit 3;}
+}
+
+case $1 in
+   "swap")
+      swapdriver $mygpuPATH $2
+      ;;
+   "start")
+		swapdriver $mygpuPATH vfio-pci && startvm $vmname && swapdriver $mygpuPATH nvidia
+      ;;
+   "stop")
+      stopvm $vmname && swapdriver $mygpuPATH vfio-pci
+      ;;
+   *)
+     echo -e $txtyel"pas bonne option:\n"$txtblu"\t- swap\n\t- start\n\t- stop"
+     ;;
+esac

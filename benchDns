@@ -1,0 +1,6 @@
+#!/bin/bash
+array=(google.fr 4chan.org discord.org microsoft.fr amazon.fr wiki.archlinux.org linuxconfig.org youtube.com)
+for var in ${array[@]}; do
+    echo -e "\n$var"
+    drill $var|grep "SERVER\|msec"
+done
