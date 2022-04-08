@@ -8,9 +8,9 @@ vmname="win10"
 txtblk='\e[0;30m' 	# Black - Regular
 txtred='\e[0;31m' 	# Red
 txtgrn='\e[0;32m' 	# Green
-txtyel='\033[1;93m' 	# yello
+txtblu='\e[0;34m'	# Blue
+txtyel='\033[1;93m' # yello
 txtrst='\e[0m' 		# Text Reset
-txtblu='\e[0;34m'		# Blue
 
 swapdriver(){
 	mygpuPATH=$1
