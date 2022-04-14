@@ -1,5 +1,7 @@
 #!/bin/zsh
 
+PRIVATE_VAR=/var/PRIVATE_VAR
+
 #COLOR
 txtblk='\e[0;30m' 	# Black - Regular
 txtred='\e[0;31m' 	# Red
@@ -7,6 +9,11 @@ txtgrn='\e[0;32m' 	# Green
 txtblu='\e[0;34m'	# Blue
 txtyel='\033[1;93m' # yello
 txtrst='\e[0m' 		# Text Reset
+
+#export
+export MAKEFLAGS="-j 24"
+export GREP_COLOR=31
+export ETHPOOL=$(head -n1 $PRIVATE_VAR)
 
 #Alias perso
 alias vi='vim'
@@ -18,11 +25,27 @@ alias iperfc='iperf3 -c'
 alias iperfs='iperf3 -s'
 alias sstrings='strings -e {s,S,b,l,B,L}'
 
+alias grep='grep --color=auto'
+alias ncdu='ncdu -e'
+alias reset='/bin/reset && reloadShell'
+
+
 #Litle script
 
-zstyle ':completion:*:va:*' ignore-line yes
 va(){
-    cd $(dirname $(plocate $1|head -n 1))
+    lignumber=1
+    location=$(plocate "$1"|xargs -I {} dirname {} |uniq)
+    if [ $# -eq 2 ] ;then
+        lignumber=$2
+    else
+        echo $location|cat -n
+    fi
+    location=$(echo $location|sed -n ${lignumber}p )
+    cd $location
+}
+
+reloadShell () {
+   exec $SHELL $SHELL_ARGS "$@"
 }
 
 watch(){
@@ -41,6 +64,8 @@ watch(){
 
     while true; do
         sleep $TEMP
+
+        #invoque un shell ?
         $(echo $@)
 
         if [[ $FLAG ]] then;
@@ -51,8 +76,15 @@ watch(){
 }
 
 
-export GREP_COLOR=31
-alias grep='grep --color=auto'
 
 
 #bindkey
+
+
+#tgest
+
+
+# completion
+fpath+=$(sed -n 2p $PRIVATE_VAR)
+export fpath
+compinit
