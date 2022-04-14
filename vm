@@ -12,13 +12,19 @@ txtblu='\e[0;34m'	# Blue
 txtyel='\033[1;93m' # yello
 txtrst='\e[0m' 		# Text Reset
 
+memfree(){
+	[ $(grep MemAvailable /proc/meminfo|cut -d: -f2|grep "[0-9]*" -o) -gt $(($1*1000000)) ]
+}
+
 swapdriver(){
 	mygpuPATH=$1
 	driverToBind=$2
 
-	lsof /dev/nvidia1 | xargs -r kill -SIGKILL
-
+	#verifier si le driver est deja bind
 	[[ "$(lspci -s $mygpuPATH -k 2> /dev/null)" =~ "Kernel driver in use: $driverToBind" ]] && echo -e $txtblu"driver déja monter"$txtrst && return 0
+
+	#s'asure que rien ne tourne sur la carte
+	lsof /dev/nvidia1 | xargs -r kill -SIGKILL
 
 
 	#chemain du driver est unbine donc connaitre le old drivezr
@@ -37,24 +43,56 @@ swapdriver(){
 }
 
 startvm(){
+	#check ram usage
+	memfree 8 || {echo -e $txtred pas assez de mémoir $txtrst; exit 4}
 	sudo virsh start $1 && { echo -e $txtgrn"vm on"$txtrst;looking;}|| { echo -e $txtred" soucis"$txtrst;exit 3;}
 }
 
 stopvm(){
+										 #trouver plus extreme
 	sudo virsh shutdown $1 && echo -e $txtgrn"vm off"$txtrst || { echo -e $txtred" soucis"$txtrst;exit 3;}
 }
+
+
+
+
+####met de la charge au pc
+
+load_pc(){
+	#start sheep-it
+	memfree 2 &&  konsole --profile CUL --new-tab -e "sheepit-client"&
+	#start eth
+	swapdriver $mygpuPATH nvidia && konsole --profile Judy --new-tab -e "ethminer --cu-devices 0 -P $ETHPOOL"&
+		#--list-profile-properties	
+}
+
+unload_pc(){
+	echo ok
+	jobs
+}
+
+##main
 
 case $1 in
    "swap")
       swapdriver $mygpuPATH $2
       ;;
    "start")
-		swapdriver $mygpuPATH vfio-pci && startvm $vmname && swapdriver $mygpuPATH nvidia
+		swapdriver $mygpuPATH vfio-pci && startvm $vmname
       ;;
    "stop")
-      stopvm $vmname && swapdriver $mygpuPATH vfio-pci
+      stopvm $vmname && swapdriver $mygpuPATH nvidia
+      ;;
+   "load")
+      load_vm
+      ;;
+   "unload")
+      unload_pc
       ;;
    *)
      echo -e $txtyel"pas bonne option:\n"$txtblu"\t- swap\n\t- start\n\t- stop"
      ;;
 esac
+
+
+
