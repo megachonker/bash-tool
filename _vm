@@ -1,0 +1,13 @@
+#compdef vm
+
+_vm(){
+    local -a _handler
+    _handler=(
+        "swap:swap de driver"
+        "start:Start la vm"
+        "stop:stop la vm"
+        "load:charge sheep-it et ethermine"
+        "unload:stop la charge"
+    )
+    _describe "ZSH autocompletion OwO" _handler
+}
