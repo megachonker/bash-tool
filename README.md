@@ -1,3 +1,5 @@
+# description
+collection de script zsh et conf
 ##  vm
 #### usage:
 - vm swap [*nvidia*|*vfio-pci*]
