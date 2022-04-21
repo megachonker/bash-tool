@@ -11,7 +11,7 @@ txtyel='\033[1;93m' # yello
 txtrst='\e[0m' 		# Text Reset
 
 #export
-export MAKEFLAGS="-j 24"
+export MAKEFLAGS="-j $(nproc)"
 export GREP_COLOR=31
 export ETHPOOL=$(head -n1 $PRIVATE_VAR)
 
