@@ -1,0 +1,16 @@
+#!/bin/zsh
+
+diff-ask(){
+	diff --color=always .git/filter-repo/fast-export.original .git/filter-repo/fast-export.filtered|less -R
+	echo "apliquer ?" ; read rep && [[ $rep =~ y ]]
+}
+
+filter-repo(){
+	git filter-repo -f --dry-run --debug $@
+	if diff-ask ; then
+		git filter-repo -f $@
+		rm -rf .git/filter-repo
+	fi
+}
+
+filter-repo $@
