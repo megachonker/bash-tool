@@ -1,6 +1,10 @@
 #!/bin/zsh
 
-PRIVATE_VAR=/var/PRIVATE_VAR
+if [ -f "$/var/PRIVATE_VAR" ]; then
+    PRIVATE_VAR=/var/PRIVATE_VAR
+else 
+    PRIVATE_VAR="/dev/null"
+fi
 
 #COLOR
 txtblk='\e[0;30m' 	# Black - Regular
@@ -34,7 +38,7 @@ alias reset='/bin/reset && reloadShell'
 
 va(){
     lignumber=1
-    location=$(plocate "$1"|xargs -I {} dirname {} |uniq)
+    location=$(mlocate "$1"|xargs -I {} dirname {} |uniq)
     if [ $# -eq 2 ] ;then
         lignumber=$2
     else
