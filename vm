@@ -16,6 +16,12 @@ memfree(){
 	[ $(grep MemAvailable /proc/meminfo|cut -d: -f2|grep "[0-9]*" -o) -gt $(($1*1000000)) ]
 }
 
+# $1 mygpu PATH
+# $2 driver name
+driver_use(){
+	[[ "$(lspci -s $mygpuPATH -k 2> /dev/null)" =~ "Kernel driver in use: $driverToBind" ]]
+}
+
 swapdriver(){
 	mygpuPATH=$1
 	driverToBind=$2
@@ -31,12 +37,12 @@ swapdriver(){
 	if [[ -e "/sys/bus/pci/devices/${mygpuPATH}/driver" ]]
 	then
 		#unbind du driver
-		sudo echo ${mygpuPATH} > /sys/bus/pci/devices/${mygpuPATH}/driver/unbind
+		echo ${mygpuPATH} |sudo tee /sys/bus/pci/devices/${mygpuPATH}/driver/unbind
 	else
 		echo -e "${txtyel}driver deja retirer !"$txtrst
 	fi
 	#bind new driver
-	sudo echo ${mygpuPATH} > /sys/bus/pci/drivers/${driverToBind}/bind || { echo -e $txtred driver indisponible/inexistant ; exit 1;}
+	echo ${mygpuPATH} |sudo tee /sys/bus/pci/drivers/${driverToBind}/bind || { echo -e $txtred driver indisponible/inexistant ; exit 1;}
 
 	#check unbind
 	[[ "$(lspci -s $mygpuPATH -k 2> /dev/null)" =~ "Kernel driver in use: $driverToBind" ]] && echo -e $txtgrn"driver monter"$txtrst || { echo -e $txtred"driver non monter" ; exit 2 ;}
@@ -44,7 +50,7 @@ swapdriver(){
 
 startvm(){
 	#check ram usage
-	memfree 8 || {echo -e $txtred pas assez de mémoir $txtrst; exit 4}
+	memfree 8 || { echo -e $txtred pas assez de mémoir $txtrst; exit 4;}
 	sudo virsh start $1 && { echo -e $txtgrn"vm on"$txtrst;looking;}|| { echo -e $txtred" soucis"$txtrst;exit 3;}
 }
 
@@ -52,9 +58,6 @@ stopvm(){
 										 #trouver plus extreme
 	sudo virsh shutdown $1 && echo -e $txtgrn"vm off"$txtrst || { echo -e $txtred" soucis"$txtrst;exit 3;}
 }
-
-
-
 
 ####met de la charge au pc
 
@@ -71,23 +74,30 @@ unload_pc(){
 	jobs
 }
 
+vm_info(){
+	lspci -s $mygpuPATH -k 2> /dev/null
+}
+
 ##main
 
 case $1 in
    "swap")
-      swapdriver $mygpuPATH $2
+      	swapdriver $mygpuPATH $2
       ;;
    "start")
 		swapdriver $mygpuPATH vfio-pci && startvm $vmname
       ;;
    "stop")
-      stopvm $vmname && swapdriver $mygpuPATH nvidia
+      	stopvm $vmname && swapdriver $mygpuPATH nvidia
+      ;;
+   "info")
+      	vm_info
       ;;
    "load")
-      load_vm
+      	load_pc
       ;;
    "unload")
-      unload_pc
+      	unload_pc
       ;;
    *)
      echo -e $txtyel"pas bonne option:\n"$txtblu"\t- swap\n\t- start\n\t- stop"
