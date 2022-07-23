@@ -57,24 +57,42 @@ watch(){
         shift 1
     fi
     last=${argv[-1]}
-    if [[ $last == "FLAG" ]] then;
-        FLAG="ON"
+    if [[ $last =~ F.* ]] then;
+        FLAG=$last
         unset 'argv[-1]'
     fi
 
     while true; do
+
         sleep $TEMP
+
+        if [[ $FLAG =~ FD.* ]] then;
+            echo "=========== $(date) ============="
+        elif [[ $FLAG =~ F(B|C).* ]] then;
+            clear
+        fi
 
         #invoque un shell ?
         $(echo $@)
 
-        if [[ $FLAG ]] then;
-            echo "=========== $(date) ============="
-        fi
 
     done
 }
 
+
+moyenne(){    
+    rm -f timing
+    nbloop=$1
+    shift 1
+    for valeur in $(seq $nbloop);
+    do
+        /bin/time -f "%e" $(echo $@) 2>> timing
+    done
+    echo temps moyen:
+    OP=$(echo -n \( ; tr '\n' '+' < timing ; echo 0\)/${nbloop})
+    echo "scale=3;$OP"|bc #|tee -a final
+    rm timing
+}
 
 
 
