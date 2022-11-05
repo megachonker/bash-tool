@@ -98,7 +98,21 @@ moyenne(){
     rm timing
 }
 
-
+showcolors(){
+for a in {0..106};
+	do for b in {0..4}; 
+		do
+		echo -en "\e[$b;${a}m";
+		if [ -z "$1" ];then
+			echo -n "$b;$a"
+		else
+			echo -n $1
+		fi
+		echo -ne "\t\e[0m";
+	done;
+	echo "";
+done
+}
 
 #bindkey
 
